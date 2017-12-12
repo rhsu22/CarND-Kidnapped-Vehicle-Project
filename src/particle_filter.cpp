@@ -77,6 +77,14 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 }
 
+double tfX(double px, double theta, double cx, double cy) {
+	return cos(theta) * cx - sin(theta) * cy + px;
+}
+
+double tfY(double py, double theta, double cx, double cy) {
+	return sin(theta) * cx + cos(theta) * cy + py;
+}
+
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		const std::vector<LandmarkObs> &observations, const Map &map_landmarks) {
 	// TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
@@ -105,12 +113,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		std::vector<double> sense_y;
 		double weight = 1;
 
-		std::function<double(double,double)> tf_x = [&particle](double cx, double cy){return cos(particle.theta) * cx - sin(particle.theta) * cy + particle.x;};
-		std::function<double(double,double)> tf_y = [&particle](double cx, double cy){return sin(particle.theta) * cx + cos(particle.theta) * cy + particle.y;};
-
 		for (auto& obs : observations) {
-			double mx = tf_x(obs.x, obs.y);
-			double my = tf_y(obs.x, obs.y);
+			double mx = tfX(particle.x, particle.theta, obs.x, obs.y);
+			double my = tfY(particle.y, particle.theta, obs.x, obs.y);
 
 			// Find nearest landmark
 			double nearest_distance = std::numeric_limits<double>::max();
